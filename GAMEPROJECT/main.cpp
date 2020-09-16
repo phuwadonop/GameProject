@@ -2,6 +2,9 @@
 
 int main()
 {
+    //init rand
+    std::srand(static_cast<unsigned>(time(NULL)));
+
     //Window
     Game game;
 

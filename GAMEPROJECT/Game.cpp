@@ -3,6 +3,13 @@
 void Game::initVariables()
 {
 	this->window = nullptr;
+
+    //Game logic 
+    this->points = 0;
+    this->enemySpawnTimerMax = 1000.f;
+    this->enemySpawnTimer = 0.f;
+    this->maxEnemies = 5;
+
 }
 
 void Game::initWindow()
@@ -10,6 +17,8 @@ void Game::initWindow()
 	this->videoMode.height = 600;
 	this->videoMode.width = 800;
 	this->window = new sf::RenderWindow(this->videoMode, "My frist Game", sf::Style::Titlebar | sf::Style::Close);
+
+    this->window->setFramerateLimit(60);
 }
 
 void Game::initEnemies()
@@ -39,6 +48,27 @@ const bool Game::running() const
 {
 	return this->window->isOpen();
 }
+
+//Function
+void Game::spawnEnemy()
+{
+    /*
+        return
+
+        spawns enemies and set  thier color and position
+        -set a random position.
+        -set a random color.
+        -Add enemy to the vector.
+    */
+
+    this->enemy.setPosition(
+        static_cast<float>(rand() % static_cast<int>(this->window->getSize().x - this->enemy.getSize().x)),
+        static_cast<float>(rand() % static_cast<int>(this->window->getSize().y - this->enemy.getSize().y))
+    );
+    this->enemy.setFillColor(sf::Color::Green);
+    //Spawn enemy
+    this->enemies.push_back(this->enemy);
+}
 void Game::pollEvent()
 {
     while (this->window->pollEvent(this->ev))
@@ -50,21 +80,60 @@ void Game::pollEvent()
             break;
         case sf::Event::KeyPressed:
             if (this->ev.key.code == sf::Keyboard::Escape)
-            this->window->close();
+                this->window->close();
             break;
         }
     }
 }
-//Function
+void Game::updateMousePositions()
+{
+    this->mousePosWindow = sf::Mouse::getPosition(*this->window);
+}
+void Game::updateEnemies()
+{
+    /*
+        @return void
+
+        updates the enemy spawn timer and spawns enemies
+        when the total amount of enemies is smaller than max.
+        Move enemies downwards.
+        Removes the enemies at the edge of  the screen. //todo
+    */
+
+    // updating the timer for enemy spawning
+    if (this->enemies.size() < this->maxEnemies)
+    {
+        if (this->enemySpawnTimer >= this->enemySpawnTimerMax)
+        {
+            //spawn enemies and reset timer
+            this->spawnEnemy();
+            this->enemySpawnTimer = 0.f;
+        }
+        else
+            this->enemySpawnTimer += 1.f;
+    }
+    //Move enemies
+    for (auto &e : this->enemies)
+    {
+        e.move(0.f, 5.f);
+    }
+}
 void Game::update()
 {
 	this->pollEvent();
+    this->updateMousePositions();
+    this->updateEnemies();
+}
+
+void Game::renderEnemies()
+{
+    this->window->draw(this->enemy);
 }
 
 void Game::render()
 {
     this->window->clear();
     //draw object
-    this->window->draw(this->enemy);
+    this->renderEnemies();
     this->window->display();
 }
